@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using RaindropAutomations.models;
+using RaindropAutomations.tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +17,7 @@ namespace RaindropAutomations
     public class RaindropManager
     {
         private readonly string _apiToken;
+        private readonly string _apiBaseUrl;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
 
@@ -23,7 +25,8 @@ namespace RaindropAutomations
         {
             _configuration = config;
 
-            _apiToken = config.GetSection("Raindrop")?.GetSection("ApiToken")?.Value ?? string.Empty;
+            _apiToken = config.GetFromRaindropConfig("ApiToken").Value ?? string.Empty;
+            _apiBaseUrl = config.GetFromRaindropConfig("ApiBaseUrl").Value ?? string.Empty;
 
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiToken);       
@@ -35,7 +38,7 @@ namespace RaindropAutomations
             string bookmarkJson = JsonConvert.SerializeObject(bookmark);
             HttpContent content = new StringContent(bookmarkJson, Encoding.UTF8, "application/json");
 
-            var response = _httpClient.PostAsync("https://api.raindrop.io/rest/v1/raindrop", content).Result;
+            var response = _httpClient.PostAsync($"{_apiBaseUrl}/raindrop", content).Result;
         }
 
         public void CreateMultipleBookmarks(BookmarksCollection bookmarksCollection)
@@ -43,7 +46,7 @@ namespace RaindropAutomations
             string bookmarkJson = JsonConvert.SerializeObject(bookmarksCollection);
             HttpContent content = new StringContent(bookmarkJson, Encoding.UTF8, "application/json");
 
-            var response = _httpClient.PostAsync("https://api.raindrop.io/rest/v1/raindrops", content).Result;
+            var response = _httpClient.PostAsync($"{_apiBaseUrl}/raindrops", content).Result;
         }
 
     }
